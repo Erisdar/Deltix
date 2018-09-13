@@ -22,11 +22,9 @@ public class MessageGeneratorServiceImpl implements MessageGeneratorService {
     Flux.fromIterable(MessageInstanceRandomizer.createMessages())
         .parallel()
         .runOn(Schedulers.newParallel("generator"))
-        .subscribe(
-            message -> {
-              sinkSubscriber.next(message);
-              LOG.info(String.format("The messenger generate a message: %s", message));
-            });
+        .doOnNext(
+            message -> LOG.info(String.format("The generator generated a message: %s", message)))
+        .subscribe(sinkSubscriber::next);
 
     Try.run(() -> Thread.sleep((long) (Math.random() * GENERATE_INTERVAL)));
     subscribeGenerator(sinkSubscriber);
